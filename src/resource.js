@@ -11,7 +11,7 @@ var res = {
   bug_png : "res/bug.png",
   game_bg_png : "res/game_bg.png",
   title_bg_png : "res/title_bg.png",
-  ranking_bg_png : "res/ranking_bg_png"
+  ranking_bg_png : "res/ranking_bg.png",
   game_cloud_png : "res/game_cloud.png",
   game_counter_png : "res/game_counter.png",
   gameover_png : "res/gameover.png",

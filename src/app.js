@@ -4,6 +4,11 @@ var basket;
 var xSpeed = 0; // 猫の移動速度
 var direction = 1; // 猫の向き判定用flag
 
+var size;
+
+var walk_flg = 0;
+var dm_flg = false;
+
 var score_1 = 0;  // スコアの一桁目の値
 var score_2 = 0;  // スコアの二桁目の値
 var score_3 = 0;  // スコアの三桁目の値
@@ -18,10 +23,21 @@ var detectedX;　 //現在タッチしているX座標
 var savedX;　 //前回タッチしていたX座標
 var touching = false;　 //タッチ状況管理用flag
 
+var count = 0;
+var count_array = [res.number2_png, res.number1_png, res.number0_png, res.go_png];
+var countover = false;
+var count_img;
+
+audioEngine = cc.audioEngine;
+
 
 var gameScene = cc.Scene.extend({
   onEnter: function() {
     this._super();
+    size = cc.director.getWinSize();
+    if (!audioEngine.isMusicPlaying()) {
+      audioEngine.playMusic(res.bgm, true);
+    }
     gameLayer = new game();
     gameLayer.init();
     this.addChild(gameLayer);
@@ -32,9 +48,20 @@ var game = cc.Layer.extend({
   init: function() {
     this._super();
 
+    xSpeed = 0;
+    direction = 1;
+    walk_flg = 0;
+    var dm_flg = false;
+    score_1 = 0;
+    score_2 = 0;
+    score_3 = 0;
+    time = 60;
+    touching = false;
+    count = 0;
+    countover = false;
+
     //背景
     var background = new cc.Sprite(res.game_bg_png);
-    var size = cc.director.getWinSize();
     background.setPosition(cc.p(size.width / 2.0, size.height / 2.0));
     var backgroundLayer = cc.Layer.create();
     backgroundLayer.addChild(background);
@@ -93,10 +120,16 @@ var game = cc.Layer.extend({
     time_label.fillStyle = "black";
     this.addChild(time_label);
 
+    this.schedule(this.countdoun, 1, 4, 1);
+
+    this.schedule(this.addkumo, 7.0);
+
   },
   addItem: function() {
-    var item = new Item();
-    itemsLayer.addChild(item, 1);
+    if (countover == true) {
+      var item = new Item();
+      itemsLayer.addChild(item, 1);
+    }
   },
   removeItem: function(item) {
     itemsLayer.removeChild(item);
@@ -105,30 +138,77 @@ var game = cc.Layer.extend({
     time--;
     if (time < 0) {
       time = 0;
+      audioEngine.setEffectsVolume(audioEngine.getEffectsVolume() + 0.3);
+      audioEngine.playEffect(res.se_whistle);
+      cc.director.runScene(new titleScene());
     }
     time_label.setString(time);
   },
-  //カートの移動のため　Update関数を1/60秒ごと実行させる関数
-  update: function(dt) {
-    this.schedule(this.timer_count, 1);
-    if (touching) {
-    //touchEnd(ドラックしている位置）とタッチ開始位置の差を計算する
-    //そのままだと値が大きすぎるので50で割る
-    xSpeed = (touchEnd.getPosition().x - touchOrigin.getPosition().x) / 50;
-      if (xSpeed > 0) {
-        cat.setFlippedX(true);
-        basket.setFlippedX(true);
-        basket.setPosition(0, 70);
-        direction = 0;
-      }
-      if (xSpeed < 0) {
-        cat.setFlippedX(false);
-        basket.setFlippedX(false);
-        basket.setPosition(60, 70);
-        direction = 1;
-      }
-      cat.setPosition(cat.getPosition().x + xSpeed, cat.getPosition().y);
+  countdoun: function(){
+    if(count == 0){
+      audioEngine.setEffectsVolume(audioEngine.getEffectsVolume() + 0.3);
+      audioEngine.playEffect(res.se_countdown);
+      count_img = cc.Sprite.create(count_array[0]);
+      count_img.setPosition(size.width * 0.5, size.height * 0.5);
+      count_img.setVisible(true);
+      this.addChild(count_img, 5);
     }
+    if (count == 1) {
+      count_img.setTexture(count_array[1]);
+    }
+    if (count == 2) {
+      count_img.setTexture(count_array[2]);
+    }
+    if (count == 3) {
+      count_img.setTexture(count_array[3])
+    }
+    if (count == 4) {
+      count_img.setVisible(false);
+      countover = true;
+    }
+    count++;
+  },
+  //猫の移動のため　Update関数を1/60秒ごと実行させる関数
+  update: function(dt) {
+    if(countover == true){
+      if (score_2 >= 8 || score_3 >= 1) basket.setTexture(res.basket3_png);
+      else if (score_2 >= 4 && score_3 == 0) basket.setTexture(res.basket2_png);
+      else if (score_2 >= 2 && score_3 == 0) basket.setTexture(res.basket1_png);
+      else basket.setTexture(res.basket0_png);
+
+      this.schedule(this.timer_count, 1);
+      if (touching && dm_flg == false) {
+        //touchEnd(ドラックしている位置）とタッチ開始位置の差を計算する
+        //そのままだと値が大きすぎるので50で割る
+        xSpeed = (touchEnd.getPosition().x - touchOrigin.getPosition().x) / 50;
+        if (xSpeed > 0) {
+          cat.setFlippedX(true);
+          basket.setFlippedX(true);
+          basket.setPosition(0, 70);
+          direction = 0;
+        }
+        if (xSpeed < 0) {
+          cat.setFlippedX(false);
+          basket.setFlippedX(false);
+          basket.setPosition(60, 70);
+          direction = 1;
+        }
+        cat.setPosition(cat.getPosition().x + xSpeed, cat.getPosition().y);
+        if (cat.getPositionX() < 35) cat.setPositionX(35);
+        if (cat.getPositionX() > size.width - 35) cat.setPositionX(size.width - 35);
+        walk_flg++;
+        if (walk_flg == 10 || walk_flg == 30) cat.setTexture(res.cat1_png);
+        if (walk_flg == 20) cat.setTexture(res.cat2_png);
+        if (walk_flg == 40) { cat.setTexture(res.cat0_png); walk_flg = 0; }
+      }
+    }
+  },
+  addkumo: function(){
+    var Kumo = new kumo();
+    this.addChild(Kumo);
+  },
+  removekumo: function(kumo){
+    this.removeChild(kumo);
   }
 });
 
@@ -154,13 +234,20 @@ var Item = cc.Sprite.extend({
     this.runAction(moveAction);
     this.scheduleUpdate();
   },
-  update: function(dt) {
-    /*
-    var move1 = cc.MoveTo(0.5, cc.p(5, 0));
-    var move2 = cc.MoveTo(0.5, cc.p(0, 0));
+  // 猫のミス時処理
+  cat_dmg: function(){
+    cat.setTexture(res.cat3_png);
+    var move1 = cc.MoveTo.create(0.05, cc.p(cat.getPositionX() + 5, cat.getPositionY()));
+    var move2 = cc.MoveTo.create(0.05, cc.p(cat.getPositionX() - 5, cat.getPositionY()));
     var seq = cc.sequence(move1, move2);
-    var rep = cc.repeat(seq, 5);
-    */
+    var rep = cc.repeat(seq, 20);
+    cat.runAction(rep);
+  },
+  dm_flg_chenger: function(){
+    dm_flg = false;
+    console.log("false");
+  },
+  update: function(dt) {
     // 果物の処理　1
     if (direction == 1 && (this.getPosition().y < 65 && this.getPosition().y > 60 && Math.abs(this.getPosition().x - (cat.getPosition().x + 30)) < 30  && !this.isBomb)) {
       gameLayer.removeItem(this);
@@ -198,7 +285,7 @@ var Item = cc.Sprite.extend({
       console.log("FRUIT");
     }
     // 爆弾の処理 1
-    if (direction == 1 &&(this.getPosition().y < 60 && Math.abs(this.getPosition().x - (cat.getPosition().x + 30)) < 25 && this.isBomb)) {
+    if (direction == 1 && (this.getPosition().y < 65 && this.getPosition().y > 60 && Math.abs(this.getPosition().x - (cat.getPosition().x + 30)) < 25 && this.isBomb)) {
       gameLayer.removeItem(this);
       score_2--;
       if (score_2 < 0) {
@@ -213,12 +300,15 @@ var Item = cc.Sprite.extend({
         }
       }
       score_label2.setString(score_2);
-
+      //if (dm_flg == false){
+        this.cat_dmg();
+        dm_flg = true;
+        this.schedule(this.dm_flg_chenger(), 1, 0, 2);
+      //}
       console.log("BUG");
-      // cat.runAction(rep);
     }
     // 爆弾の処理 2
-    if (direction == 0 &&(this.getPosition().y < 60 && Math.abs(this.getPosition().x - (cat.getPosition().x - 30)) < 25 && this.isBomb)) {
+    if (direction == 0 && (this.getPosition().y < 65 && this.getPosition().y > 60 && Math.abs(this.getPosition().x - (cat.getPosition().x - 30)) < 25 && this.isBomb)) {
       gameLayer.removeItem(this);
       score_2--;
       if (score_2 < 0) {
@@ -233,7 +323,11 @@ var Item = cc.Sprite.extend({
         }
       }
       score_label2.setString(score_2);
-      // cat.runAction(rep);
+      //if (dm_flg == false){
+        this.cat_dmg();
+        dm_flg = true;
+        this.schedule(this.dm_flg_chenger(), 1, 0, 2);
+      //}
     }
     //地面に落ちたアイテムは消去
     if (this.getPosition().y < -30) {
@@ -269,4 +363,24 @@ var touchListener = cc.EventListener.create({
     topLayer.removeChild(touchOrigin);
     topLayer.removeChild(touchEnd);
   }
-})
+});
+
+// 雲表示用クラス
+var kumo = cc.Sprite.extend({
+  ctor: function(){
+    this._super();
+    this.initWithFile(res.game_cloud_png);
+  },
+  onEnter: function(){
+    this._super();
+    this.setPosition(600, size.height * 0.8);
+    var moveAction = cc.MoveTo.create(10, new cc.Point(-100, size.height * 0.8));
+    this.runAction(moveAction);
+    this.scheduleUpdate();
+  },
+  update: function(dt){
+    if(this.getPosition().x < -50){
+      gameLayer.removekumo(this);
+    }
+  }
+});

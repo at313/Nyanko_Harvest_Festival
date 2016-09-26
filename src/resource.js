@@ -14,7 +14,7 @@ var res = {
   ranking_bg_png : "res/ranking_bg.png",
   game_cloud_png : "res/game_cloud.png",
   game_counter_png : "res/game_counter.png",
-  gameover_png : "res/gameover.png",
+  gameover_png : "res/game_gameover.png",
   go_png : "res/go.png",
   help0_png : "res/help_1.png",
   help1_png : "res/help_2.png",
@@ -38,7 +38,7 @@ var res = {
   touchorigin_png : "res/touchorigin.png",
   bgm : "res/bgm.mp3",
   se_button : "res/button.mp3",
-  se_countdown : "res/countdoun.mp3",
+  se_countdown : "res/countdown.mp3",
   se_whistle : "res/whistle.mp3"
 };
 

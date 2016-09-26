@@ -28,7 +28,7 @@ var res = {
   ranking_apple_png : "res/ranking_apple.png",
   ranking_back0_png : "res/ranking_back1.png",
   ranking_back1_png : "res/ranking_back2.png",
-  timerleft_png : "res/timerleft.png",
+  timerleft_png : "res/timeleft.png",
   title_png : "res/title_J.png",
   title_ranking0_png : "res/title_ranking_1_J.png",
   title_ranking1_png : "res/title_ranking_2_J.png",

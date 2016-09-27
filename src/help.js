@@ -1,4 +1,4 @@
-// help.js
+//  help.js
 
 var help_array = [res.howtoplay0_png, res.howtoplay1_png, res.howtoplay2_png];
 var num = 0;

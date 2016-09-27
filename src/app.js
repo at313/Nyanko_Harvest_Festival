@@ -140,7 +140,10 @@ var game = cc.Layer.extend({
       time = 0;
       audioEngine.setEffectsVolume(audioEngine.getEffectsVolume() + 0.3);
       audioEngine.playEffect(res.se_whistle);
-      cc.director.runScene(new titleScene());
+      gameover.score1 = score_1;
+      gameover.score2 = score_2;
+      gameover.score3 = score_3;
+      cc.director.runScene(new overScene());
     }
     time_label.setString(time);
   },

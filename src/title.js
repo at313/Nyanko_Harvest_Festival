@@ -92,6 +92,12 @@ var title = cc.Layer.extend({
       audioEngine.playEffect(res.se_button);
       cc.director.runScene(new gameScene());
     }
+    if(rank_flg){
+      rank_flg = false;
+      audioEngine.setEffectsVolume(audioEngine.getEffectsVolume() + 0.3);
+      audioEngine.playEffect(res.se_button);
+      cc.director.runScene(new rankingScene());
+    }
     if(help_flg){
        help_flg = false;
        audioEngine.setEffectsVolume(audioEngine.getEffectsVolume() + 0.3);
